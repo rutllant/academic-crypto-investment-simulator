@@ -8,12 +8,12 @@ import streamlit as st
 
 from engine import (
     DEFAULT_RULES,
-    FALLBACK_MARKETS,
+    available_reference_currencies,
     calculate_metrics,
     evaluate_human_decisions,
     fetch_market_data,
     hodl_equity,
-    list_spot_markets,
+    list_fx_markets,
     monte_carlo_random_agents,
     run_agent_backtest,
     validate_rules,
@@ -21,20 +21,14 @@ from engine import (
 )
 from i18n import LANGUAGES, translator
 
-st.set_page_config(page_title="Agent Cripto · TDR", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Agent FX · TDR", page_icon="💱", layout="wide")
 
-EXCHANGES = {
-    "Kraken": "kraken",
-    "Binance": "binance",
-    "Coinbase": "coinbase",
-    "Bitstamp": "bitstamp",
-}
-QUOTES = ["EUR", "USD", "USDT", "USDC"]
+REFERENCE_CURRENCIES = available_reference_currencies()
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def market_catalog(exchange_id: str, quote: str):
-    return list_spot_markets(exchange_id, quote)
+def market_catalog(reference_currency: str):
+    return list_fx_markets(reference_currency)
 
 
 def base(symbol: str) -> str:
@@ -42,7 +36,8 @@ def base(symbol: str) -> str:
 
 
 def default_symbols(catalog: list[str], quote: str) -> list[str]:
-    preferred = [f"BTC/{quote}", f"ETH/{quote}", f"SOL/{quote}"]
+    preferred_assets = ["USD", "GBP", "JPY", "CHF", "EUR"]
+    preferred = [f"{asset}/{quote}" for asset in preferred_assets if asset != quote]
     chosen = [s for s in preferred if s in catalog]
     if not chosen:
         chosen = catalog[: min(3, len(catalog))]
@@ -107,36 +102,24 @@ st.caption(t("app_caption"))
 
 with st.sidebar:
     st.header(t("section_market"))
-    exchange_label = st.selectbox(
-        t("exchange"),
-        list(EXCHANGES),
-        index=0,
-        help=t("exchange_help"),
-    )
-    exchange = EXCHANGES[exchange_label]
     quote = st.selectbox(
         t("quote"),
-        QUOTES,
+        REFERENCE_CURRENCIES,
         index=0,
         help=t("quote_help"),
     )
 
     try:
-        catalog = market_catalog(exchange, quote)
-        catalog_live = True
+        catalog = market_catalog(quote)
     except Exception as exc:
-        catalog = FALLBACK_MARKETS.get(quote, [])
-        catalog_live = False
-        st.warning(t("catalog_warning", error=exc))
-
-    if not catalog:
-        st.error(t("no_spot", quote=quote, exchange=exchange_label))
+        st.error(t("catalog_warning", error=exc))
         st.stop()
 
-    if catalog_live:
-        st.caption(t("markets_available_live", count=len(catalog), quote=quote))
-    else:
-        st.caption(t("markets_available_reduced", count=len(catalog), quote=quote))
+    if not catalog:
+        st.error(t("no_spot", quote=quote, exchange="ECB"))
+        st.stop()
+
+    st.caption(t("markets_available_live", count=len(catalog), quote=quote))
 
     all_assets = st.checkbox(
         t("select_all"),
@@ -344,7 +327,7 @@ with st.sidebar:
             step=1,
             help=t("holder_count_help"),
         )
-        preferred_holders = [s for s in selected if base(s) in {"BTC", "ETH", "SOL"}]
+        preferred_holders = [s for s in selected if base(s) in {"USD", "GBP", "JPY", "CHF", "EUR"}]
         preferred_holders += [s for s in selected if s not in preferred_holders]
         holder_assets = st.multiselect(
             t("holder_assets"),
@@ -352,7 +335,7 @@ with st.sidebar:
             default=preferred_holders[: int(n_holders)],
             max_selections=int(n_holders),
             help=t("holder_assets_help"),
-            key=f"holders_{int(n_holders)}_{abs(hash(tuple(selected)))}_{quote}_{exchange}",
+            key=f"holders_{int(n_holders)}_{abs(hash(tuple(selected)))}_{quote}",
         )
         if len(holder_assets) != int(n_holders):
             st.caption(t("holders_missing", count=int(n_holders) - len(holder_assets)))
@@ -369,7 +352,7 @@ with st.sidebar:
     )
     random_days = st.selectbox(
         t("random_decision"),
-        [1, 7, 14, 30],
+        [1, 5, 10, 20],
         index=1,
         format_func=lambda x: t("every_days", days=x),
     )
@@ -408,7 +391,7 @@ if run:
     try:
         with st.status(t("status_running"), expanded=True) as status:
             st.write(t("fetching_ohlcv", count=len(selected)))
-            data = fetch_market_data(exchange, selected, fetch_start, fetch_end, rules=rules)
+            data = fetch_market_data(quote, selected, fetch_start, fetch_end, rules=rules)
             unavailable = [s for s in selected if s not in data]
             if unavailable:
                 symbols = ", ".join(unavailable[:10]) + ("..." if len(unavailable) > 10 else "")
@@ -585,19 +568,19 @@ with tab3:
     st.download_button(
         t("download_ops"),
         agent.trades.to_csv(index=False).encode("utf-8-sig"),
-        "operacions_agent.csv",
+        "fx_operacions_agent.csv",
         "text/csv",
     )
     st.download_button(
         t("download_random"),
         random.to_csv(index=False).encode("utf-8-sig"),
-        "agents_aleatoris.csv",
+        "fx_agents_aleatoris.csv",
         "text/csv",
     )
     st.download_button(
         t("download_returns"),
         returns_pct.to_csv().encode("utf-8-sig"),
-        "rendibilitat_agent_holders.csv",
+        "fx_rendibilitat_agent_holders.csv",
         "text/csv",
     )
 
@@ -615,7 +598,7 @@ template = pd.DataFrame(template_rows)
 st.download_button(
     t("download_template"),
     template.to_csv(index=False).encode("utf-8-sig"),
-    "plantilla_inversors_humans.csv",
+    "plantilla_inversors_humans_fx.csv",
     "text/csv",
 )
 st.caption(t("allowed_choices"))
@@ -635,7 +618,7 @@ if uploaded is not None:
         st.download_button(
             t("download_human_results"),
             human.to_csv(index=False).encode("utf-8-sig"),
-            "resultats_humans.csv",
+            "resultats_humans_fx.csv",
             "text/csv",
         )
     except Exception as exc:
