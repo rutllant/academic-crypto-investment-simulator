@@ -1,4 +1,4 @@
-name: Build Windows release
+name: Build Windows FX release
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to package, e.g. v0.4.1"
+        description: "Version to package, e.g. v0.1.0"
         required: true
         type: string
 
@@ -42,7 +42,7 @@ jobs:
           }
 
           if ($version -notmatch '^v\d+\.\d+\.\d+$') {
-            throw "Version must match vMAJOR.MINOR.PATCH, for example v0.4.1"
+            throw "Version must match vMAJOR.MINOR.PATCH, for example v0.1.0"
           }
 
           "version=$version" >> $env:GITHUB_OUTPUT
@@ -58,7 +58,7 @@ jobs:
           $pythonSha256 = "d1f04d990aee1253d8569e8e5104e30fa9f5fa830899f14843448872d936a2cf"
           $pythonUrl = "https://www.python.org/ftp/python/$pythonVersion/python-$pythonVersion-embed-amd64.zip"
 
-          $releaseDir = Join-Path $env:RUNNER_TEMP "Agent_Cripto_TDR"
+          $releaseDir = Join-Path $env:RUNNER_TEMP "Agent_FX_TDR"
           $runtimeDir = Join-Path $releaseDir "runtime"
           $sitePackages = Join-Path $runtimeDir "Lib\site-packages"
           $pythonZip = Join-Path $env:RUNNER_TEMP "python-embed-amd64.zip"
@@ -113,12 +113,15 @@ jobs:
             Set-Content -Path (Join-Path $releaseDir "DEPENDENCIES_LOCK.txt") -Encoding UTF8
 
           $embeddedPython = Join-Path $runtimeDir "python.exe"
-          & $embeddedPython -c "import streamlit, pandas, numpy, plotly, ccxt; print('Portable runtime OK')"
+          & $embeddedPython -c "import streamlit, pandas, numpy, plotly; print('Portable FX runtime OK')"
           if ($LASTEXITCODE -ne 0) {
             throw "The packaged Python runtime failed its import test."
           }
 
           "release_dir=$releaseDir" >> $env:GITHUB_OUTPUT
+
+      - name: Run deterministic FX smoke test
+        run: python scripts/smoke_fx.py
 
       - name: Create portable ZIP
         id: package
@@ -126,7 +129,7 @@ jobs:
         run: |
           $version = "${{ steps.version.outputs.version_number }}"
           $releaseDir = "${{ steps.portable.outputs.release_dir }}"
-          $zip = Join-Path $env:RUNNER_TEMP "Agent_Cripto_TDR_Windows_v$version.zip"
+          $zip = Join-Path $env:RUNNER_TEMP "Agent_FX_TDR_Windows_v$version.zip"
 
           if (Test-Path $zip) {
             Remove-Item $zip -Force
@@ -166,7 +169,7 @@ jobs:
             throw "Inno Setup compilation failed."
           }
 
-          $setup = Join-Path $outputDir "Agent_Cripto_TDR_Setup_v$version.exe"
+          $setup = Join-Path $outputDir "Agent_FX_TDR_Setup_v$version.exe"
           if (-not (Test-Path $setup)) {
             throw "Expected installer was not generated: $setup"
           }
@@ -193,7 +196,7 @@ jobs:
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Agent_Cripto_TDR_Windows_${{ steps.version.outputs.version }}
+          name: Agent_FX_TDR_Windows_${{ steps.version.outputs.version }}
           path: |
             ${{ steps.package.outputs.zip }}
             ${{ steps.installer.outputs.setup }}
@@ -212,7 +215,7 @@ jobs:
 
           gh release view $tag *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag $zip $setup $manifest --title "Academic Crypto Investment Simulator $tag" --generate-notes
+            gh release create $tag $zip $setup $manifest --title "Academic FX Investment Simulator $tag" --generate-notes
           } else {
             gh release upload $tag $zip $setup $manifest --clobber
           }
