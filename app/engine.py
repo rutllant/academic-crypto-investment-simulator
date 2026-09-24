@@ -465,16 +465,22 @@ def run_agent_backtest(
 
 
 def calculate_metrics(equity: pd.Series, initial_capital: float) -> Dict[str, float]:
-    """Calculate close-to-close portfolio metrics using a zero risk-free rate."""
+    """Calculate daily portfolio metrics using a zero risk-free rate.
+
+    The initial capital is treated as the value immediately before the first evaluation
+    session. This makes first-session fees/losses part of return, volatility and drawdown.
+    """
     equity = equity.dropna().astype(float)
     if equity.empty:
         return {}
-    daily = equity.pct_change().dropna()
+
+    previous = np.concatenate(([float(initial_capital)], equity.to_numpy()[:-1]))
+    daily = pd.Series(equity.to_numpy() / previous - 1.0, index=equity.index)
     total_return = equity.iloc[-1] / initial_capital - 1
-    running_max = equity.cummax()
+    running_max = equity.cummax().clip(lower=float(initial_capital))
     drawdown = equity / running_max - 1
     annual_vol = daily.std(ddof=1) * np.sqrt(365) if len(daily) > 1 else np.nan
-    days = max((equity.index[-1] - equity.index[0]).days, 1)
+    days = max((equity.index[-1] - equity.index[0]).days + 1, 1)
     annual_return = (equity.iloc[-1] / max(initial_capital, 1e-12)) ** (365 / days) - 1
     sharpe = (
         daily.mean() / daily.std(ddof=1) * np.sqrt(365)
