@@ -1,38 +1,38 @@
-#define MyAppName "Agent Cripto TDR"
-#define MyAppVersion "0.4"
+#define MyAppName "Academic Crypto Investment Simulator"
 #define MyAppPublisher "Projecte educatiu TDR"
+#define MyAppURL "https://github.com/rutllant/academic-crypto-investment-simulator"
+#define MyAppVersion GetEnv("APP_VERSION")
+#define SourceDir GetEnv("SOURCE_DIR")
 
 [Setup]
 AppId={{A7A84326-8B14-4D87-98F7-4FC2F7F0D0D2}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={localappdata}\Programs\Agent Cripto TDR
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}
+AppUpdatesURL={#MyAppURL}
+DefaultDirName={localappdata}\Programs\Academic Crypto Investment Simulator
+DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-OutputDir=installer_output
-OutputBaseFilename=Agent_Cripto_TDR_Setup
-Compression=lzma
+OutputBaseFilename=Agent_Cripto_TDR_Setup_v{#MyAppVersion}
+Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+UninstallDisplayName={#MyAppName}
 
 [Files]
-Source: "app\*"; DestDir: "{app}\app"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "requirements.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "setup.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "INICIAR_AGENT.bat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "INSTAL_LAR_AGENT.bat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "DESINSTAL_LAR_AGENT.bat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "VERSIO.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Tasks]
+Name: "desktopicon"; Description: "Crear un accés directe a l'escriptori"; GroupDescription: "Accessos directes:"
 
 [Icons]
-Name: "{autodesktop}\Agent Cripto TDR"; Filename: "{app}\INICIAR_AGENT.bat"; WorkingDir: "{app}"
-Name: "{group}\Agent Cripto TDR"; Filename: "{app}\INICIAR_AGENT.bat"; WorkingDir: "{app}"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\INICIAR_AGENT.bat"; WorkingDir: "{app}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\INICIAR_AGENT.bat"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\INSTAL_LAR_AGENT.bat"; Description: "Instal·lar Python, Streamlit i dependències"; Flags: postinstall waituntilterminated
+Filename: "{app}\INICIAR_AGENT.bat"; Description: "Iniciar {#MyAppName}"; Flags: postinstall nowait skipifsilent
