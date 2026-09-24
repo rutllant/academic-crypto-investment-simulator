@@ -1,0 +1,4 @@
+Agent Cripto TDR
+Versió 0.4 - interfície multiidioma CA/ES/EN/EU/GL
+Mercats dinàmics + regles editables + holders configurables
+Python dedicat + Streamlit + dependències instal·lades automàticament
