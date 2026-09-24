@@ -2,11 +2,15 @@
 
 ## Abast del projecte
 
-Academic Crypto Investment Simulator és una aplicació educativa. No executa operacions reals, no demana credencials d'exchange i no necessita claus API.
+Academic FX Investment Simulator és una aplicació educativa i de recerca. No executa operacions reals, no demana credencials bancàries o de brokers i no necessita claus API.
 
-## Distribució Windows v0.4.1+
+## Font de dades
 
-Les Releases de Windows es construeixen automàticament mitjançant GitHub Actions. El runtime Python i les dependències s'incorporen durant el procés de build; l'ordinador de l'usuari no descarrega ni instal·la Python i no executa scripts PowerShell de bootstrap.
+El programa descarrega únicament els tipus de canvi de referència històrics publicats pel Banc Central Europeu (BCE) des del domini oficial `ecb.europa.eu`. Aquests tipus són dades de referència informatives i no s'han d'interpretar com a preus executables de negociació.
+
+## Distribució Windows
+
+Les Releases de Windows es construeixen automàticament mitjançant GitHub Actions. El runtime Python i les dependències s'incorporen durant el procés de build; l'ordinador de l'usuari no instal·la Python ni executa un bootstrap PowerShell.
 
 La distribució publica:
 - un ZIP portable;
@@ -18,15 +22,11 @@ La distribució publica:
 A PowerShell de Windows es pot comprovar un fitxer descarregat amb:
 
 ```powershell
-Get-FileHash .\Agent_Cripto_TDR_Windows_v0.4.1.zip -Algorithm SHA256
+Get-FileHash .\Agent_FX_TDR_Windows_v0.1.0.zip -Algorithm SHA256
 ```
 
-El valor ha de coincidir exactament amb el publicat a `SHA256SUMS.txt` de la mateixa Release.
+El valor ha de coincidir amb el publicat a `SHA256SUMS.txt` de la mateixa Release.
 
 ## Signatura digital
 
-Actualment l'instal·lador no està signat amb un certificat comercial de code signing. Per això Windows SmartScreen o alguns antivirus poden mostrar avisos de reputació o indicar «editor desconegut». Una alerta de reputació no equival per si sola a una detecció de malware, però qualsevol detecció concreta s'ha d'investigar abans d'afegir excepcions.
-
-## Historial
-
-La v0.4.0 incloïa `setup.ps1`, que descarregava Python des de python.org i l'instal·lava de manera silenciosa. Aquest mecanisme es va retirar a la v0.4.1 perquè el patró podia activar heurístiques d'antivirus.
+L'instal·lador no està signat actualment amb un certificat comercial de code signing. Windows SmartScreen o alguns antivirus poden mostrar avisos de reputació o indicar «editor desconegut».
