@@ -11,14 +11,12 @@ REQUIRED_FILES = [
     "app/engine.py",
     "app/i18n.py",
     "requirements.txt",
-    "INSTAL_LAR_AGENT.bat",
     "INICIAR_AGENT.bat",
-    "DESINSTAL_LAR_AGENT.bat",
-    "setup.ps1",
     "build_installer.iss",
     "README.md",
     "CHANGELOG.md",
     "VERSIO.txt",
+    "SECURITY.md",
     "docs/PROTOCOL_TDR.md",
     "data/plantilla_inversors_humans.csv",
 ]
@@ -31,8 +29,10 @@ LOCALES = {
     "gl": ROOT / "app/locales/gl.json",
 }
 
+
 def fail(message: str) -> None:
     raise SystemExit(f"ERROR: {message}")
+
 
 def main() -> None:
     missing = [path for path in REQUIRED_FILES if not (ROOT / path).exists()]
@@ -66,7 +66,16 @@ def main() -> None:
         if package not in requirements.lower():
             fail(f"requirements.txt no inclou {package}.")
     print("OK: dependències principals presents a requirements.txt.")
+
+    launcher = (ROOT / "INICIAR_AGENT.bat").read_text(encoding="utf-8").lower()
+    forbidden = ["powershell", "executionpolicy", "invoke-webrequest", "curl ", "bitsadmin"]
+    found = [term for term in forbidden if term in launcher]
+    if found:
+        fail("El launcher conté patrons no admesos per a la distribució segura: " + ", ".join(found))
+    print("OK: el launcher no descarrega ni executa PowerShell.")
+
     print("VALIDACIÓ COMPLETADA CORRECTAMENT")
+
 
 if __name__ == "__main__":
     main()
