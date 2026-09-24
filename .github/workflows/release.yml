@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to package, e.g. v0.4.1"
+        description: "Version to package, e.g. v0.4.3"
         required: true
         type: string
 
@@ -42,7 +42,7 @@ jobs:
           }
 
           if ($version -notmatch '^v\d+\.\d+\.\d+$') {
-            throw "Version must match vMAJOR.MINOR.PATCH, for example v0.4.1"
+            throw "Version must match vMAJOR.MINOR.PATCH, for example v0.4.3"
           }
 
           "version=$version" >> $env:GITHUB_OUTPUT
@@ -71,6 +71,8 @@ jobs:
             "app",
             "data",
             "docs",
+            "tests",
+            "VALIDATION.md",
             "requirements.txt",
             "INICIAR_AGENT.bat",
             "README.md",
@@ -116,6 +118,15 @@ jobs:
           & $embeddedPython -c "import streamlit, pandas, numpy, plotly, ccxt; print('Portable runtime OK')"
           if ($LASTEXITCODE -ne 0) {
             throw "The packaged Python runtime failed its import test."
+          }
+
+          Write-Host "Running numerical audit suite with packaged runtime..."
+          Push-Location $releaseDir
+          & $embeddedPython -m unittest discover -s tests -v
+          $auditExit = $LASTEXITCODE
+          Pop-Location
+          if ($auditExit -ne 0) {
+            throw "The numerical audit suite failed."
           }
 
           "release_dir=$releaseDir" >> $env:GITHUB_OUTPUT
