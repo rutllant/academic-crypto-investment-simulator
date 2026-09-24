@@ -116,6 +116,8 @@ Expected results include:
 
 The simulator's metric function must reproduce these values.
 
+The audit also checks that the **initial capital is treated as the pre-test reference value**. Therefore a loss or commission in the first evaluation session is included in drawdown, daily return, volatility and Sharpe instead of disappearing because the first observed portfolio value became the initial peak.
+
 For cryptocurrency daily data:
 
 - annualized volatility uses `sqrt(365)`;
