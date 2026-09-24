@@ -80,6 +80,7 @@ Per a les dades diàries de divises, volatilitat i Sharpe s'anualitzen amb **252
 - **[Manual en català](docs/MANUAL_USUARI.md)**
 - **[User manual in English](docs/USER_MANUAL_EN.md)**
 - **[Protocol experimental suggerit](docs/PROTOCOL_TDR.md)**
+- **[Font de dades i fórmula de tipus creuats](docs/DATA_SOURCE_ECB.md)**
 
 Els manuals estan pensats perquè una persona sense coneixements previs d'inversió pugui entendre divisa de referència, tipus creuat, cartera, CASH, EMA, RSI, MACD, holders, Monte Carlo, drawdown, Sharpe, percentils i overfitting.
 
