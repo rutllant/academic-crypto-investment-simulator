@@ -5,7 +5,7 @@
 #define SourceDir GetEnv("SOURCE_DIR")
 
 [Setup]
-AppId={{A7A84326-8B14-4D87-98F7-4FC2F7F0D0D2}
+AppId={{CC78A267-38DB-477B-B192-EE9C7FF4902B}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
