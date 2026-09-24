@@ -1,4 +1,4 @@
-#define MyAppName "Academic Crypto Investment Simulator"
+#define MyAppName "Academic FX Investment Simulator"
 #define MyAppPublisher "Projecte educatiu TDR"
 #define MyAppURL "https://github.com/rutllant/academic-crypto-investment-simulator"
 #define MyAppVersion GetEnv("APP_VERSION")
@@ -15,7 +15,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={localappdata}\Programs\Academic Crypto Investment Simulator
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-OutputBaseFilename=Agent_Cripto_TDR_Setup_v{#MyAppVersion}
+OutputBaseFilename=Agent_FX_TDR_Setup_v{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
