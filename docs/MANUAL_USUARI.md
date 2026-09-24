@@ -694,4 +694,4 @@ Si es canvien les regles després d'observar els resultats, s'ha de considerar u
 
 ---
 
-**Versió del manual:** compatible amb Academic Crypto Investment Simulator v0.4.1.
+**Versió del manual:** compatible amb Academic Crypto Investment Simulator v0.4.2.
