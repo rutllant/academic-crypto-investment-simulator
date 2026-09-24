@@ -121,7 +121,13 @@ jobs:
           "release_dir=$releaseDir" >> $env:GITHUB_OUTPUT
 
       - name: Run deterministic FX smoke test
-        run: python scripts/smoke_fx.py
+        shell: pwsh
+        run: |
+          $embeddedPython = Join-Path "${{ steps.portable.outputs.release_dir }}" "runtime\\python.exe"
+          & $embeddedPython "scripts\\smoke_fx.py"
+          if ($LASTEXITCODE -ne 0) {
+            throw "FX smoke test failed."
+          }
 
       - name: Create portable ZIP
         id: package
