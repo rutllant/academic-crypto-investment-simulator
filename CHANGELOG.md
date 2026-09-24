@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.2
+- Incorporats dos manuals d'usuari pensats per a persones sense experiència prèvia en inversions.
+- Afegit `docs/MANUAL_USUARI.md` en català.
+- Afegit `docs/USER_MANUAL_EN.md` en anglès.
+- Els manuals expliquen exchange, spot, cartera, CASH, EMA, RSI, MACD, holders, agents aleatoris, Monte Carlo, rendibilitat, drawdown, Sharpe, percentils, reequilibris, inversors humans i overfitting.
+- Els manuals queden inclosos automàticament al ZIP portable i al `Setup.exe` perquè la carpeta `docs/` forma part de la distribució.
+- La validació automàtica exigeix la presència dels dos manuals abans de publicar una nova versió.
+- El motor de simulació no canvia respecte de la v0.4.1.
+
 ## 0.4.1
 - Redissenyada la distribució Windows per reduir falsos positius d'antivirus.
 - Eliminats `setup.ps1`, `ExecutionPolicy Bypass` i la instal·lació dinàmica de Python a l'ordinador de l'usuari.
