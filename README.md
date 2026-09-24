@@ -1,75 +1,116 @@
-# Academic Crypto Investment Simulator · v0.4.2
+# Academic FX Investment Simulator · v0.1.0
 
-Aplicació educativa per comparar una estratègia tècnica de criptomonedes amb **holders**, agents aleatoris i inversors humans utilitzant dades públiques reals de mercat. **No executa operacions reals, no utilitza claus API i no ofereix assessorament financer.**
+Aplicació educativa per comparar una estratègia sistemàtica sobre **divises** amb holders, agents aleatoris i inversors humans utilitzant tipus de canvi de referència diaris del Banc Central Europeu (BCE).
 
-## Manuals per començar de zero
+**No executa operacions reals, no utilitza palanquejament, no necessita claus API i no ofereix assessorament financer.**
 
-Si no tens experiència en inversions o anàlisi tècnica, tens disponibles dos manuals introductoris:
+## Què simula?
+
+L'usuari tria una **divisa de referència** per valorar tota la cartera —per exemple EUR— i un conjunt de divises en què l'agent pot convertir part del capital —per exemple USD, GBP, JPY o CHF.
+
+El programa compara:
+
+- **Agent tècnic:** aplica regles mecàniques basades en EMA, RSI i MACD.
+- **Holders:** converteixen el capital inicial a una sola divisa i la mantenen.
+- **Agents aleatoris:** creen carteres aleatòries amb el mateix univers de divises i el mateix pes màxim per actiu.
+- **Inversors humans:** permeten importar decisions mitjançant CSV.
+
+## Font de dades: BCE
+
+La v0.1.0 utilitza la sèrie històrica oficial de tipus de canvi de referència de l'euro publicada pel BCE:
+
+`https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.csv`
+
+El BCE publica els tipus com a unitats de cada divisa per euro. El simulador deriva matemàticament els tipus creuats quan la divisa de referència no és EUR.
+
+Per exemple, si el BCE publica USD/EUR i GBP/EUR, el programa pot calcular el valor d'una lliura en dòlars sense recórrer a una segona font.
+
+> Els tipus del BCE són tipus de referència informatius i no preus executables de trading. El simulador els utilitza perquè són una font institucional, transparent i reproduïble per a recerca acadèmica.
+
+## Sense Forex apalancat
+
+Aquesta primera versió no simula:
+
+- palanquejament;
+- posicions curtes;
+- CFD;
+- futurs;
+- swaps;
+- interessos sobre el cash;
+- finançament overnight.
+
+La lògica és deliberadament simple: convertir una part de la cartera d'una moneda a una altra i valorar-la posteriorment amb el tipus de referència.
+
+## Cost de conversió
+
+El camp **Cost de conversió (%)** representa de manera simplificada els costos que podria comportar canviar d'una divisa a una altra.
+
+No pretén reproduir exactament l'spread o les comissions d'un broker concret. Serveix per evitar que una estratègia amb molts canvis de cartera sigui comparada com si operar fos gratuït.
+
+## Regles tècniques
+
+Es mantenen les mateixes regles transparents del simulador original:
+
+- EMA curta vs EMA llarga;
+- interval RSI;
+- MACD vs línia de senyal;
+- puntuació mínima per entrar;
+- pes màxim per divisa.
+
+L'agent no utilitza intel·ligència artificial ni un model opac per decidir. Davant les mateixes dades i paràmetres, produeix les mateixes decisions.
+
+## Resultats
+
+El simulador calcula, entre altres:
+
+- capital final;
+- rendibilitat total;
+- drawdown màxim;
+- volatilitat anualitzada;
+- índex Sharpe;
+- nombre de reequilibris;
+- costos de conversió;
+- percentil de l'agent respecte dels agents aleatoris;
+- rendibilitat de cada holder.
+
+Per a les dades diàries de divises, volatilitat i Sharpe s'anualitzen amb **252 sessions**.
+
+## Manuals
 
 - **[Manual en català](docs/MANUAL_USUARI.md)**
 - **[User manual in English](docs/USER_MANUAL_EN.md)**
+- **[Protocol experimental suggerit](docs/PROTOCOL_TDR.md)**
 
-Expliquen pas a pas què són l'exchange, la divisa de referència, la cartera, EMA, RSI, MACD, els holders, els agents aleatoris, el drawdown, l'índex Sharpe, els percentils, els reequilibris i la càrrega de decisions humanes, amb exemples senzills i advertiments d'interpretació. Els dos manuals també s'inclouen dins del ZIP portable i del Setup.exe de la v0.4.2.
+Els manuals estan pensats perquè una persona sense coneixements previs d'inversió pugui entendre divisa de referència, tipus creuat, cartera, CASH, EMA, RSI, MACD, holders, Monte Carlo, drawdown, Sharpe, percentils i overfitting.
 
-## Windows: instal·lació sense Python ni PowerShell
+## Interfície multiidioma
 
-Des de la v0.4.1 el sistema de distribució és autocontingut; la v0.4.2 incorpora també els manuals d'usuari dins del paquet. L'ordinador de l'usuari **ja no descarrega ni instal·la Python, no executa `pip` i no utilitza `setup.ps1` ni `ExecutionPolicy Bypass`**.
+La interfície manté:
 
-Cada Release de Windows es construeix automàticament a GitHub Actions i inclou:
-- un runtime oficial de Python portable;
-- Streamlit i totes les dependències necessàries;
-- el codi de l'aplicació;
-- un ZIP portable;
-- un instal·lador `Setup.exe` creat amb Inno Setup;
-- `SHA256SUMS.txt` per comprovar la integritat dels artefactes.
+- Català
+- Español
+- English
+- Euskara
+- Galego
 
-### Opció recomanada: Setup.exe
+## Windows
 
-Descarrega `Agent_Cripto_TDR_Setup_v0.4.2.exe` des de la Release corresponent i executa'l. L'instal·lador només copia els fitxers autocontinguts i crea els accessos directes seleccionats. No descarrega components durant la instal·lació.
+La distribució està preparada per generar:
 
-### Opció portable: ZIP
+- `Agent_FX_TDR_Windows_v0.1.0.zip` — versió portable;
+- `Agent_FX_TDR_Setup_v0.1.0.exe` — instal·lador Inno Setup;
+- `SHA256SUMS.txt` — verificació d'integritat.
 
-Descarrega `Agent_Cripto_TDR_Windows_v0.4.2.zip`, descomprimeix-lo i executa `INICIAR_AGENT.bat`. No cal instal·lar Python, Streamlit, VS Code ni cap altra llibreria.
+El paquet inclou Python i les dependències; no cal instal·lar Python manualment.
 
-> L'accés a Internet continua sent necessari quan l'aplicació consulta dades públiques de mercat als exchanges.
-
-## Seguretat de la distribució
-
-La v0.4.0 utilitzava un bootstrap de PowerShell que descarregava Python i l'instal·lava silenciosament. Aquest patró podia activar deteccions heurístiques d'antivirus encara que el codi fos legítim. La v0.4.1 va eliminar completament aquest mecanisme i la v0.4.2 manté aquesta arquitectura.
-
-Els artefactes de cada Release es construeixen a GitHub Actions. Pots verificar-los amb els hashes SHA-256 publicats a `SHA256SUMS.txt`.
-
-L'instal·lador encara no està signat amb un certificat comercial de code signing; per tant, Windows o algun antivirus poden mostrar avisos de reputació o «editor desconegut». Consulta `SECURITY.md` per als detalls.
-
-## Funcions
-
-- **Catàleg dinàmic de criptomonedes:** parelles spot disponibles a Kraken, Binance, Coinbase i Bitstamp per a EUR, USD, USDT o USDC.
-- **Regles editables:** EMA, RSI i MACD activables i configurables.
-- **Holders configurables:** cada holder manté una criptomoneda durant tot el període.
-- **Monte Carlo:** comparació amb fins a 10.000 agents aleatoris.
-- **Inversors humans:** importació de decisions mitjançant CSV.
-- **Resultats:** capital final, rendibilitat, drawdown, Sharpe, reequilibris, gràfics i exportacions CSV.
-- **Interfície multiidioma:** català, castellà, anglès, euskera i gallec.
-
-## Idiomes
-
-Els fitxers de traducció són:
-- `app/locales/ca.json` — Català
-- `app/locales/es.json` — Español
-- `app/locales/en.json` — English
-- `app/locales/eu.json` — Euskara
-- `app/locales/gl.json` — Galego
-
-La lògica de càrrega i fallback és a `app/i18n.py`. Si manca una clau en algun idioma, s'utilitza el català com a idioma de reserva.
+L'accés a Internet és necessari quan el simulador descarrega les dades oficials del BCE.
 
 ## Criteri metodològic
 
-L'aplicació permet editar les regles per experimentar. Per a la part principal del TDR convé **definir i congelar les regles abans del període de test**. Si es retoquen després de veure els resultats, cal tractar-ho com una nova especificació i provar-la en un altre període fora de mostra.
+Per a un experiment acadèmic, les regles i paràmetres s'han de definir **abans d'observar el període de test**. Modificar-los repetidament fins a obtenir un resultat favorable introdueix risc de sobreajustament (*overfitting*).
 
-## Desenvolupament des del codi font
+Un resultat favorable en un backtest no demostra que la mateixa estratègia funcioni en altres períodes o en el futur.
 
-El repositori no conté el runtime binari de Python. Els binaris només es generen a les Releases mitjançant GitHub Actions. Per executar directament el codi font cal un entorn Python propi i instal·lar `requirements.txt`.
+## Origen del projecte
 
-## Abast
-
-Projecte exclusivament educatiu. No guarda credencials d'exchange, no opera amb diners reals i el resultat d'un backtest no garanteix rendiments futurs.
+Aquesta branca FX deriva de l'arquitectura de **Academic Crypto Investment Simulator**, però substitueix els exchanges de criptomonedes per tipus de canvi institucionals del BCE i adapta el model a una cartera de divises sense palanquejament.
