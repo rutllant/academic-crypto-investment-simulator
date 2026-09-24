@@ -305,7 +305,24 @@ Si no hi ha prou criptomonedes que compleixin les regles, una part dels diners q
 
 ---
 
-# 10. Què és un reequilibri?
+# 10. Quan s'executa realment un senyal?
+
+Aquest punt és important per entendre el backtest.
+
+Els indicadors d'un dia només es poden conèixer completament quan aquella espelma diària ha acabat. Per evitar utilitzar informació del futur, la v0.4.3 funciona així:
+
+1. es tanca el dia **t**;
+2. es calculen EMA, RSI, MACD i la puntuació;
+3. si hi ha un canvi de cartera, s'executa a l'**obertura del dia següent disponible**;
+4. el valor de la cartera es torna a calcular al tancament.
+
+Això evita atribuir a l'estratègia un moviment de preu que ja s'havia produït abans que el senyal pogués ser conegut.
+
+Les decisions dels inversors humans també es fan efectives a la primera sessió posterior a la data registrada al CSV.
+
+---
+
+# 11. Què és un reequilibri?
 
 Un **reequilibri** és un moment en què l'agent modifica la distribució de la cartera.
 
@@ -328,7 +345,7 @@ El nombre de reequilibris permet saber si l'estratègia ha estat molt activa o m
 
 ---
 
-# 11. Holders de control
+# 12. Holders de control
 
 Un **holder** segueix una estratègia molt simple:
 
@@ -348,7 +365,7 @@ Si l'agent tècnic obté un 15 % però un holder de BTC obté un 40 %, el result
 
 ---
 
-# 12. Agents aleatoris
+# 13. Agents aleatoris
 
 Els agents aleatoris formen el principal grup de control de l'experiment.
 
@@ -381,7 +398,7 @@ Això evita comparar l'agent tècnic amb agents que estiguin canviant obligatòr
 
 ---
 
-# 13. Executar simulació
+# 14. Executar simulació
 
 Quan premem **Executar simulació**, el programa:
 
@@ -396,7 +413,7 @@ La simulació pot trigar més si hi ha moltes criptomonedes o milers d'agents al
 
 ---
 
-# 14. Com interpretar els resultats
+# 15. Com interpretar els resultats
 
 ## Capital final
 
@@ -424,7 +441,7 @@ La rendibilitat per si sola no explica tot el risc assumit.
 
 ---
 
-# 15. Drawdown màxim
+# 16. Drawdown màxim
 
 El **drawdown** mesura la caiguda des d'un màxim anterior de la cartera.
 
@@ -453,7 +470,7 @@ En general:
 
 ---
 
-# 16. Índex Sharpe
+# 17. Índex Sharpe
 
 L'**índex Sharpe** relaciona rendibilitat i volatilitat.
 
@@ -469,7 +486,7 @@ Especialment en criptomonedes, les distribucions de rendiments poden ser molt ir
 
 ---
 
-# 17. Percentil respecte als agents aleatoris
+# 18. Percentil respecte als agents aleatoris
 
 El simulador compara el capital final de l'agent tècnic amb tots els agents aleatoris.
 
@@ -485,7 +502,7 @@ Només descriu la posició de l'agent dins de **les simulacions realitzades en a
 
 ---
 
-# 18. Histograma dels agents aleatoris
+# 19. Histograma dels agents aleatoris
 
 L'histograma mostra com s'han distribuït les rendibilitats dels agents aleatoris.
 
@@ -501,7 +518,7 @@ La línia de l'**agent tècnic** permet veure visualment si el seu resultat se s
 
 ---
 
-# 19. Agent tècnic vs holders
+# 20. Agent tècnic vs holders
 
 Aquesta gràfica mostra l'evolució de la rendibilitat acumulada de:
 
@@ -514,7 +531,7 @@ Dues estratègies poden acabar amb resultats semblants però haver tingut trajec
 
 ---
 
-# 20. Operacions i senyals
+# 21. Operacions i senyals
 
 ## Reequilibris
 
@@ -538,7 +555,7 @@ Permet descarregar els resultats en CSV per analitzar-los amb Excel, LibreOffice
 
 ---
 
-# 21. Inversors humans
+# 22. Inversors humans
 
 El simulador permet comparar l'agent amb decisions preses per persones.
 
@@ -571,7 +588,7 @@ Quan selecciona una criptomoneda, el simulador hi destina com a màxim el percen
 
 ---
 
-# 22. Què significa CASH en els inversors humans?
+# 23. Què significa CASH en els inversors humans?
 
 **CASH** significa no mantenir cap criptomoneda en aquell moment.
 
@@ -581,7 +598,7 @@ No és necessari introduir una decisió cada dia. L'última decisió es manté f
 
 ---
 
-# 23. Una configuració senzilla per aprendre
+# 24. Una configuració senzilla per aprendre
 
 Per entendre el simulador abans de fer l'experiment formal es pot començar, només com a exemple didàctic, amb:
 
@@ -606,7 +623,7 @@ Per al TDR, els paràmetres definitius s'han de justificar metodològicament i c
 
 ---
 
-# 24. Errors habituals d'interpretació
+# 25. Errors habituals d'interpretació
 
 ### «L'agent ha guanyat diners, per tant funciona»
 
@@ -628,7 +645,7 @@ Per això, en un experiment acadèmic, és important definir les regles abans d'
 
 ---
 
-# 25. Paraules clau del simulador
+# 26. Paraules clau del simulador
 
 | Terme | Explicació breu |
 |---|---|
@@ -651,7 +668,7 @@ Per això, en un experiment acadèmic, és important definir les regles abans d'
 
 ---
 
-# 26. Per què aquest simulador no és un sistema de predicció?
+# 27. Per què aquest simulador no és un sistema de predicció?
 
 Els indicadors tècnics es calculen a partir de preus passats.
 
@@ -667,7 +684,7 @@ L'objectiu principal del projecte és **comparar sistemes de decisió**, no pred
 
 ---
 
-# 27. Recomanació per a l'ús acadèmic
+# 28. Recomanació per a l'ús acadèmic
 
 Perquè els resultats siguin comparables i reproduïbles:
 
@@ -694,4 +711,4 @@ Si es canvien les regles després d'observar els resultats, s'ha de considerar u
 
 ---
 
-**Versió del manual:** compatible amb Academic Crypto Investment Simulator v0.4.2.
+**Versió del manual:** compatible amb Academic Crypto Investment Simulator v0.4.3.
