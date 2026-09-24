@@ -1,6 +1,6 @@
 #define MyAppName "Academic FX Investment Simulator"
 #define MyAppPublisher "Projecte educatiu TDR"
-#define MyAppURL "https://github.com/rutllant/academic-crypto-investment-simulator"
+#define MyAppURL "https://github.com/rutllant/academic-fx-investment-simulator"
 #define MyAppVersion GetEnv("APP_VERSION")
 #define SourceDir GetEnv("SOURCE_DIR")
 
