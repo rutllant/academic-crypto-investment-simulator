@@ -1,0 +1,112 @@
+name: Build Windows release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to package, e.g. v0.4.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Validate, package and publish
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Validate project
+        run: python scripts/validate_project.py
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}"
+          }
+
+          if ($version -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Version must match vMAJOR.MINOR.PATCH, for example v0.4.0"
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "version_number=$($version.TrimStart('v'))" >> $env:GITHUB_OUTPUT
+
+      - name: Prepare release folder
+        shell: pwsh
+        run: |
+          $releaseDir = Join-Path $env:RUNNER_TEMP "Agent_Cripto_TDR"
+          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+
+          $items = @(
+            "app",
+            "data",
+            "docs",
+            "requirements.txt",
+            "setup.ps1",
+            "INSTAL_LAR_AGENT.bat",
+            "INICIAR_AGENT.bat",
+            "DESINSTAL_LAR_AGENT.bat",
+            "build_installer.iss",
+            "README.md",
+            "CHANGELOG.md",
+            "VERSIO.txt"
+          )
+
+          foreach ($item in $items) {
+            Copy-Item -Path $item -Destination $releaseDir -Recurse -Force
+          }
+
+      - name: Create Windows ZIP
+        id: package
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version_number }}"
+          $releaseDir = Join-Path $env:RUNNER_TEMP "Agent_Cripto_TDR"
+          $zip = Join-Path $env:RUNNER_TEMP "Agent_Cripto_TDR_Windows_v$version.zip"
+
+          if (Test-Path $zip) {
+            Remove-Item $zip -Force
+          }
+
+          Compress-Archive -Path $releaseDir -DestinationPath $zip -CompressionLevel Optimal
+          "zip=$zip" >> $env:GITHUB_OUTPUT
+          "zip_name=$(Split-Path $zip -Leaf)" >> $env:GITHUB_OUTPUT
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Agent_Cripto_TDR_Windows_${{ steps.version.outputs.version }}
+          path: ${{ steps.package.outputs.zip }}
+          if-no-files-found: error
+
+      - name: Create or update GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.version.outputs.version }}"
+          $zip = "${{ steps.package.outputs.zip }}"
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag $zip --title "Academic Crypto Investment Simulator $tag" --generate-notes
+          } else {
+            gh release upload $tag $zip --clobber
+          }
