@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from io import BytesIO
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
@@ -26,13 +28,17 @@ DEFAULT_RULES = {
     "max_weight": 0.40,
 }
 
-# Fallback only if the live exchange catalogue cannot be loaded.
-FALLBACK_MARKETS = {
-    "EUR": ["BTC/EUR", "ETH/EUR", "SOL/EUR"],
-    "USD": ["BTC/USD", "ETH/USD", "SOL/USD"],
-    "USDT": ["BTC/USDT", "ETH/USDT", "SOL/USDT"],
-    "USDC": ["BTC/USDC", "ETH/USDC", "SOL/USDC"],
-}
+ECB_HISTORY_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.csv"
+
+# Current currencies published in the ECB euro foreign-exchange reference-rate table.
+# EUR is added separately because the ECB series use EUR as the common base.
+ECB_CURRENCIES = [
+    "USD", "JPY", "CZK", "DKK", "GBP", "HUF", "PLN", "RON", "SEK", "CHF",
+    "ISK", "NOK", "TRY", "AUD", "BRL", "CAD", "CNY", "HKD", "IDR", "ILS",
+    "INR", "KRW", "MXN", "MYR", "NZD", "PHP", "SGD", "THB", "ZAR",
+]
+
+PREFERRED_CURRENCIES = ["EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD", "SEK", "NOK", "DKK"]
 
 
 @dataclass
@@ -43,35 +49,27 @@ class BacktestResult:
     metrics: Dict[str, float]
 
 
-def list_spot_markets(exchange_id: str, quote: str = "EUR") -> List[str]:
-    """Return all active spot markets for a quote currency from CCXT."""
-    import ccxt
+def available_reference_currencies() -> List[str]:
+    """Currencies that can be used as the portfolio/reference currency."""
+    ordered = PREFERRED_CURRENCIES + [c for c in ECB_CURRENCIES if c not in PREFERRED_CURRENCIES]
+    return ordered
 
-    if not hasattr(ccxt, exchange_id):
-        raise ValueError(f"Exchange no suportat per CCXT: {exchange_id}")
-    exchange = getattr(ccxt, exchange_id)({"enableRateLimit": True})
-    markets = exchange.load_markets()
-    quote = quote.upper().strip()
 
-    symbols: List[str] = []
-    for symbol, market in markets.items():
-        if market.get("spot") is not True:
-            continue
-        if market.get("active") is False:
-            continue
-        if str(market.get("quote", "")).upper() != quote:
-            continue
-        # Ignore synthetic/index-like entries lacking a conventional base.
-        if not market.get("base"):
-            continue
-        symbols.append(symbol)
+def list_fx_markets(reference_currency: str = "EUR") -> List[str]:
+    """Return all available currency holdings expressed in the selected reference currency.
 
-    def sort_key(symbol: str):
-        base = symbol.split("/")[0].upper()
-        preferred = {"BTC": 0, "ETH": 1, "SOL": 2}
-        return (preferred.get(base, 99), base, symbol)
+    A symbol such as USD/EUR means: the value of one US dollar expressed in euros.
+    Cross rates are derived from the ECB's euro reference-rate table.
+    """
+    reference = reference_currency.upper().strip()
+    supported = {"EUR", *ECB_CURRENCIES}
+    if reference not in supported:
+        raise ValueError(f"Divisa de referència no suportada: {reference}")
 
-    return sorted(set(symbols), key=sort_key)
+    preferred_assets = ["USD", "GBP", "JPY", "CHF", "EUR", "CAD", "AUD"]
+    assets = [c for c in ["EUR", *ECB_CURRENCIES] if c != reference]
+    assets.sort(key=lambda c: (preferred_assets.index(c) if c in preferred_assets else 99, c))
+    return [f"{asset}/{reference}" for asset in assets]
 
 
 def validate_rules(rules: Mapping[str, object]) -> None:
@@ -124,7 +122,6 @@ def indicators(df: pd.DataFrame, rules: Optional[Mapping[str, object]] = None) -
     close = out["close"].astype(float)
     score = pd.Series(0, index=out.index, dtype=int)
 
-    # EMA rule.
     ema_fast = int(rules["ema_fast"])
     ema_slow = int(rules["ema_slow"])
     out["ema_fast"] = close.ewm(span=ema_fast, adjust=False).mean()
@@ -132,7 +129,6 @@ def indicators(df: pd.DataFrame, rules: Optional[Mapping[str, object]] = None) -
     if bool(rules["ema_enabled"]):
         score += (out["ema_fast"] > out["ema_slow"]).astype(int) * int(rules["ema_points"])
 
-    # RSI rule.
     rsi_period = int(rules["rsi_period"])
     delta = close.diff()
     gain = delta.clip(lower=0)
@@ -146,7 +142,6 @@ def indicators(df: pd.DataFrame, rules: Optional[Mapping[str, object]] = None) -
         rsi_ok = (out["rsi"] >= float(rules["rsi_min"])) & (out["rsi"] <= float(rules["rsi_max"]))
         score += rsi_ok.astype(int) * int(rules["rsi_points"])
 
-    # MACD rule.
     macd_fast = int(rules["macd_fast"])
     macd_slow = int(rules["macd_slow"])
     macd_signal = int(rules["macd_signal"])
@@ -161,70 +156,105 @@ def indicators(df: pd.DataFrame, rules: Optional[Mapping[str, object]] = None) -
     return out
 
 
+def _download_ecb_history() -> pd.DataFrame:
+    """Download and parse the ECB historical euro reference-rate CSV."""
+    request = Request(
+        ECB_HISTORY_URL,
+        headers={"User-Agent": "Academic-FX-Investment-Simulator/0.1 (+educational research)"},
+    )
+    with urlopen(request, timeout=30) as response:
+        payload = response.read()
+
+    df = pd.read_csv(BytesIO(payload), na_values=["N/A", ""])
+    df.columns = [str(c).strip() for c in df.columns]
+    date_col = "Date" if "Date" in df.columns else df.columns[0]
+    df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+    df = df.dropna(subset=[date_col]).set_index(date_col).sort_index()
+    for col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    return df
+
+
+def _ecb_units_per_euro(history: pd.DataFrame, currency: str) -> pd.Series:
+    currency = currency.upper().strip()
+    if currency == "EUR":
+        return pd.Series(1.0, index=history.index, name="EUR")
+    if currency not in history.columns:
+        raise ValueError(f"L'ECB no ofereix una sèrie històrica per a {currency}.")
+    return history[currency].astype(float)
+
+
 def fetch_market_data(
-    exchange_id: str,
+    reference_currency: str,
     symbols: Iterable[str],
     start: pd.Timestamp,
     end: pd.Timestamp,
     timeframe: str = "1d",
     rules: Optional[Mapping[str, object]] = None,
 ) -> Dict[str, pd.DataFrame]:
-    """Fetch public OHLCV data through CCXT. No account or API key is used."""
-    import ccxt
+    """Fetch ECB daily reference rates and derive currency cross rates.
 
-    if not hasattr(ccxt, exchange_id):
-        raise ValueError(f"Exchange no suportat per CCXT: {exchange_id}")
+    ECB series are quoted as units of foreign currency per euro. For an asset currency A
+    and portfolio/reference currency R, the simulator values one unit of A in R as:
 
-    exchange = getattr(ccxt, exchange_id)({"enableRateLimit": True})
-    exchange.load_markets()
+        price(A in R) = ECB(R per EUR) / ECB(A per EUR)
 
-    start = pd.Timestamp(start, tz="UTC") if pd.Timestamp(start).tz is None else pd.Timestamp(start).tz_convert("UTC")
-    end = pd.Timestamp(end, tz="UTC") if pd.Timestamp(end).tz is None else pd.Timestamp(end).tz_convert("UTC")
-    since = int(start.timestamp() * 1000)
-    end_ms = int((end + pd.Timedelta(days=1)).timestamp() * 1000)
+    The ECB publishes one reference observation per working day; therefore this simulator
+    uses daily reference rates, not intraday OHLC prices.
+    """
+    del timeframe  # kept for API compatibility with the crypto simulator
 
+    reference = reference_currency.upper().strip()
+    start = pd.Timestamp(start).tz_localize(None) if pd.Timestamp(start).tzinfo is not None else pd.Timestamp(start)
+    end = pd.Timestamp(end).tz_localize(None) if pd.Timestamp(end).tzinfo is not None else pd.Timestamp(end)
+
+    history = _download_ecb_history()
+    history = history.loc[(history.index >= start) & (history.index <= end)]
+    if history.empty:
+        raise RuntimeError("L'ECB no ha retornat dades dins del període seleccionat.")
+
+    ref_per_eur = _ecb_units_per_euro(history, reference)
     result: Dict[str, pd.DataFrame] = {}
     errors: List[str] = []
+
     for symbol in symbols:
-        if symbol not in exchange.markets:
-            errors.append(f"{symbol}: mercat no disponible")
+        try:
+            asset, symbol_reference = symbol.upper().split("/", 1)
+        except ValueError:
+            errors.append(f"{symbol}: format de parell no vàlid")
             continue
 
-        rows: List[list] = []
-        cursor = since
+        if symbol_reference != reference:
+            errors.append(f"{symbol}: la divisa de referència no coincideix amb {reference}")
+            continue
+        if asset == reference:
+            errors.append(f"{symbol}: actiu i divisa de referència són iguals")
+            continue
+
         try:
-            while cursor < end_ms:
-                batch = exchange.fetch_ohlcv(symbol, timeframe=timeframe, since=cursor, limit=1000)
-                if not batch:
-                    break
-                rows.extend(batch)
-                newest = int(batch[-1][0])
-                next_cursor = newest + 1
-                if next_cursor <= cursor:
-                    break
-                cursor = next_cursor
-                if newest >= end_ms:
-                    break
+            asset_per_eur = _ecb_units_per_euro(history, asset)
+            close = (ref_per_eur / asset_per_eur).replace([np.inf, -np.inf], np.nan).dropna()
         except Exception as exc:
             errors.append(f"{symbol}: {exc}")
             continue
 
-        if not rows:
-            errors.append(f"{symbol}: sense dades")
+        if close.empty:
+            errors.append(f"{symbol}: sense dades comunes")
             continue
 
-        df = pd.DataFrame(rows, columns=["timestamp", "open", "high", "low", "close", "volume"])
-        df["date"] = pd.to_datetime(df["timestamp"], unit="ms", utc=True).dt.tz_convert(None)
-        df = df.drop_duplicates("date").set_index("date").sort_index()
-        df = df.loc[(df.index >= start.tz_localize(None)) & (df.index <= end.tz_localize(None))]
-        if df.empty:
-            errors.append(f"{symbol}: sense dades dins del període")
-            continue
+        # ECB reference rates supply one daily reference value rather than tradable OHLCV.
+        # We preserve the familiar DataFrame schema while indicators use only "close".
+        df = pd.DataFrame(index=close.index)
+        df["open"] = close
+        df["high"] = close
+        df["low"] = close
+        df["close"] = close
+        df["volume"] = np.nan
         result[symbol] = indicators(df, rules)
 
     if not result:
         detail = "; ".join(errors[:5])
-        raise RuntimeError(f"No s'han pogut obtenir dades dels actius seleccionats. {detail}")
+        raise RuntimeError(f"No s'han pogut obtenir dades de les divises seleccionades. {detail}")
     return result
 
 
@@ -313,7 +343,7 @@ def run_agent_backtest(
                 {
                     "date": date,
                     "portfolio_before": portfolio_value,
-                    "fee": fee,
+                    "conversion_cost": fee,
                     **{f"weight_{_base(s)}": desired[s] for s in symbols},
                     **{f"score_{_base(s)}": scores[s] for s in symbols},
                 }
@@ -326,14 +356,14 @@ def run_agent_backtest(
             {
                 "date": date,
                 **{f"score_{_base(s)}": scores[s] for s in symbols},
-                **{f"close_{_base(s)}": prices[s] for s in symbols},
+                **{f"rate_{_base(s)}": prices[s] for s in symbols},
             }
         )
 
     equity = pd.Series(dict(equity_rows), name="Agent tècnic").sort_index()
     metrics = calculate_metrics(equity, initial_capital)
     metrics["trades"] = float(len(trades))
-    metrics["fees"] = float(sum(t["fee"] for t in trades))
+    metrics["fees"] = float(sum(t["conversion_cost"] for t in trades))
     return BacktestResult(
         equity=equity,
         trades=pd.DataFrame(trades),
@@ -350,10 +380,10 @@ def calculate_metrics(equity: pd.Series, initial_capital: float) -> Dict[str, fl
     total_return = equity.iloc[-1] / initial_capital - 1
     running_max = equity.cummax()
     drawdown = equity / running_max - 1
-    annual_vol = daily.std(ddof=1) * np.sqrt(365) if len(daily) > 1 else np.nan
+    annual_vol = daily.std(ddof=1) * np.sqrt(252) if len(daily) > 1 else np.nan
     days = max((equity.index[-1] - equity.index[0]).days, 1)
     annual_return = (equity.iloc[-1] / max(initial_capital, 1e-12)) ** (365 / days) - 1
-    sharpe = (daily.mean() / daily.std(ddof=1) * np.sqrt(365)) if len(daily) > 1 and daily.std(ddof=1) > 0 else np.nan
+    sharpe = (daily.mean() / daily.std(ddof=1) * np.sqrt(252)) if len(daily) > 1 and daily.std(ddof=1) > 0 else np.nan
     return {
         "final_value": float(equity.iloc[-1]),
         "total_return": float(total_return),
@@ -377,8 +407,6 @@ def hodl_equity(
     if missing:
         raise ValueError(f"No hi ha dades per als holders: {', '.join(missing)}")
 
-    # HODL uses the same common evaluation dates as the technical agent to keep comparison fair.
-    subset = {s: data[s] for s in symbols}
     dates = _common_dates(data, evaluation_start, evaluation_end)
     out: Dict[str, pd.Series] = {}
     for symbol in symbols:
@@ -395,19 +423,13 @@ def monte_carlo_random_agents(
     n_agents: int,
     initial_capital: float,
     commission: float = 0.001,
-    decision_every_days: int = 7,
+    decision_every_days: int = 5,
     max_weight: float = 0.40,
     evaluation_start: Optional[pd.Timestamp] = None,
     evaluation_end: Optional[pd.Timestamp] = None,
     seed: int = 42,
 ) -> pd.DataFrame:
-    """Simulate random portfolios using the same asset universe and max-weight constraint.
-
-    At each decision date, every random investor chooses a random number of assets (including
-    zero = all cash), then a random subset. Chosen assets are equally weighted, capped at the
-    same maximum weight as the technical agent; unused capital stays in cash. Between decision
-    dates the positions drift naturally with market prices (there is no hidden daily rebalance).
-    """
+    """Simulate random currency portfolios under the same allocation constraints."""
     symbols = list(data)
     dates = _common_dates(data, evaluation_start, evaluation_end)
     closes = np.column_stack([data[s].loc[dates, "close"].to_numpy(float) for s in symbols])
@@ -425,7 +447,6 @@ def monte_carlo_random_agents(
             total_before = cash + asset_values.sum(axis=1)
             k = rng.integers(0, n_assets + 1, size=n_agents)
 
-            # Random priorities: the k lowest values become the chosen subset.
             priorities = rng.random((n_agents, n_assets), dtype=np.float32)
             order = np.argsort(priorities, axis=1)
             ranks = np.empty_like(order)
@@ -446,7 +467,6 @@ def monte_carlo_random_agents(
             asset_values = investable[:, None] * new_weights
             cash = investable - asset_values.sum(axis=1)
 
-        # Hold the chosen positions until the next decision date.
         asset_values *= (1.0 + returns[day][None, :])
         values = cash + asset_values.sum(axis=1)
         max_values = np.maximum(max_values, values)
@@ -464,6 +484,7 @@ def monte_carlo_random_agents(
         }
     )
 
+
 def evaluate_human_decisions(
     decisions: pd.DataFrame,
     data: Dict[str, pd.DataFrame],
@@ -473,12 +494,7 @@ def evaluate_human_decisions(
     evaluation_start: Optional[pd.Timestamp] = None,
     evaluation_end: Optional[pd.Timestamp] = None,
 ) -> pd.DataFrame:
-    """Evaluate human choices from CSV columns participant,date,choice.
-
-    `choice` may be CASH, a base ticker (e.g. BTC) or an exact market symbol (e.g. BTC/EUR).
-    A crypto choice targets `max_weight` of the portfolio; the rest remains in cash until the
-    participant changes the decision. Positions drift naturally between decision dates.
-    """
+    """Evaluate human currency choices from CSV columns participant,date,choice."""
     required = {"participant", "date", "choice"}
     if not required.issubset(decisions.columns):
         raise ValueError("El CSV ha de tenir les columnes participant,date,choice.")
@@ -500,7 +516,7 @@ def evaluate_human_decisions(
             return exact_symbols[choice]
         if choice in base_to_symbol:
             return base_to_symbol[choice]
-        raise ValueError(f"Opció no disponible: {choice}. Usa CASH o una de les monedes seleccionades.")
+        raise ValueError(f"Opció no disponible: {choice}. Usa CASH o una de les divises seleccionades.")
 
     df["symbol"] = df["choice"].map(normalize_choice)
     prices = pd.DataFrame({s: data[s].loc[common, "close"].astype(float) for s in data})
@@ -516,7 +532,6 @@ def evaluate_human_decisions(
         n_changes = 0
 
         for current_date in common:
-            # Value positions at today's close before a possible new decision.
             asset_value = 0.0 if held_symbol == "CASH" else units * float(prices.loc[current_date, held_symbol])
             total = cash + asset_value
 
@@ -549,6 +564,7 @@ def evaluate_human_decisions(
             }
         )
     return pd.DataFrame(results)
+
 
 def _base(symbol: str) -> str:
     return symbol.split("/")[0].split(":")[0]
