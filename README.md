@@ -1,4 +1,4 @@
-# Academic Crypto Investment Simulator · v0.4.1
+# Academic Crypto Investment Simulator · v0.4.2
 
 Aplicació educativa per comparar una estratègia tècnica de criptomonedes amb **holders**, agents aleatoris i inversors humans utilitzant dades públiques reals de mercat. **No executa operacions reals, no utilitza claus API i no ofereix assessorament financer.**
 
@@ -9,11 +9,11 @@ Si no tens experiència en inversions o anàlisi tècnica, tens disponibles dos 
 - **[Manual en català](docs/MANUAL_USUARI.md)**
 - **[User manual in English](docs/USER_MANUAL_EN.md)**
 
-Expliquen pas a pas què són l'exchange, la divisa de referència, la cartera, EMA, RSI, MACD, els holders, els agents aleatoris, el drawdown, l'índex Sharpe, els percentils, els reequilibris i la càrrega de decisions humanes, amb exemples senzills i advertiments d'interpretació.
+Expliquen pas a pas què són l'exchange, la divisa de referència, la cartera, EMA, RSI, MACD, els holders, els agents aleatoris, el drawdown, l'índex Sharpe, els percentils, els reequilibris i la càrrega de decisions humanes, amb exemples senzills i advertiments d'interpretació. Els dos manuals també s'inclouen dins del ZIP portable i del Setup.exe de la v0.4.2.
 
 ## Windows: instal·lació sense Python ni PowerShell
 
-La v0.4.1 canvia completament el sistema de distribució. L'ordinador de l'usuari **ja no descarrega ni instal·la Python, no executa `pip` i no utilitza `setup.ps1` ni `ExecutionPolicy Bypass`**.
+Des de la v0.4.1 el sistema de distribució és autocontingut; la v0.4.2 incorpora també els manuals d'usuari dins del paquet. L'ordinador de l'usuari **ja no descarrega ni instal·la Python, no executa `pip` i no utilitza `setup.ps1` ni `ExecutionPolicy Bypass`**.
 
 Cada Release de Windows es construeix automàticament a GitHub Actions i inclou:
 - un runtime oficial de Python portable;
@@ -25,17 +25,17 @@ Cada Release de Windows es construeix automàticament a GitHub Actions i inclou:
 
 ### Opció recomanada: Setup.exe
 
-Descarrega `Agent_Cripto_TDR_Setup_v0.4.1.exe` des de la Release corresponent i executa'l. L'instal·lador només copia els fitxers autocontinguts i crea els accessos directes seleccionats. No descarrega components durant la instal·lació.
+Descarrega `Agent_Cripto_TDR_Setup_v0.4.2.exe` des de la Release corresponent i executa'l. L'instal·lador només copia els fitxers autocontinguts i crea els accessos directes seleccionats. No descarrega components durant la instal·lació.
 
 ### Opció portable: ZIP
 
-Descarrega `Agent_Cripto_TDR_Windows_v0.4.1.zip`, descomprimeix-lo i executa `INICIAR_AGENT.bat`. No cal instal·lar Python, Streamlit, VS Code ni cap altra llibreria.
+Descarrega `Agent_Cripto_TDR_Windows_v0.4.2.zip`, descomprimeix-lo i executa `INICIAR_AGENT.bat`. No cal instal·lar Python, Streamlit, VS Code ni cap altra llibreria.
 
 > L'accés a Internet continua sent necessari quan l'aplicació consulta dades públiques de mercat als exchanges.
 
 ## Seguretat de la distribució
 
-La v0.4.0 utilitzava un bootstrap de PowerShell que descarregava Python i l'instal·lava silenciosament. Aquest patró podia activar deteccions heurístiques d'antivirus encara que el codi fos legítim. La v0.4.1 elimina completament aquest mecanisme.
+La v0.4.0 utilitzava un bootstrap de PowerShell que descarregava Python i l'instal·lava silenciosament. Aquest patró podia activar deteccions heurístiques d'antivirus encara que el codi fos legítim. La v0.4.1 va eliminar completament aquest mecanisme i la v0.4.2 manté aquesta arquitectura.
 
 Els artefactes de cada Release es construeixen a GitHub Actions. Pots verificar-los amb els hashes SHA-256 publicats a `SHA256SUMS.txt`.
 
