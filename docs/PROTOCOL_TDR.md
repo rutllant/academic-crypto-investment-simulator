@@ -1,4 +1,4 @@
-# Protocol experimental suggerit · Agent Cripto TDR v0.3
+# Protocol experimental suggerit · Agent Cripto TDR v0.4
 
 ## Pregunta de recerca
 Una estratègia sistemàtica basada en indicadors tècnics produeix resultats diferents dels d'una estratègia aleatòria sota les mateixes condicions de capital, univers d'actius i costos?
