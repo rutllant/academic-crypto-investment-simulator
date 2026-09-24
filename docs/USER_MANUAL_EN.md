@@ -305,7 +305,24 @@ If there are not enough cryptocurrencies that meet the rules, part of the capita
 
 ---
 
-# 10. What is a rebalance?
+# 10. When is a signal actually executed?
+
+This is important when interpreting the backtest.
+
+A daily candle's indicators are only fully known after that candle has closed. To avoid using future information, v0.4.3 works as follows:
+
+1. day **t** closes;
+2. EMA, RSI, MACD and the score are calculated;
+3. any portfolio change is executed at the **next available daily open**;
+4. the portfolio is valued again at the daily close.
+
+This prevents the strategy from receiving credit for a price move that occurred before the signal could have been known.
+
+Human-investor decisions are also made effective on the first session after the date recorded in the CSV.
+
+---
+
+# 11. What is a rebalance?
 
 A **rebalance** is a moment when the agent changes the composition of the portfolio.
 
@@ -328,7 +345,7 @@ The number of rebalances indicates whether the strategy has been very active or 
 
 ---
 
-# 11. Control holders
+# 12. Control holders
 
 A **holder** follows a very simple strategy:
 
@@ -348,7 +365,7 @@ If the technical agent earns 15% but a BTC holder earns 40%, the agent's result 
 
 ---
 
-# 12. Random agents
+# 13. Random agents
 
 Random agents are the main control group in the experiment.
 
@@ -381,7 +398,7 @@ This prevents the technical agent from being compared with random agents that ar
 
 ---
 
-# 13. Run simulation
+# 14. Run simulation
 
 When you press **Run simulation**, the program:
 
@@ -396,7 +413,7 @@ The simulation may take longer if many cryptocurrencies or thousands of random a
 
 ---
 
-# 14. How to interpret the results
+# 15. How to interpret the results
 
 ## Final capital
 
@@ -424,7 +441,7 @@ Return alone does not explain how much risk was taken.
 
 ---
 
-# 15. Maximum drawdown
+# 16. Maximum drawdown
 
 **Drawdown** measures the decline from a previous portfolio high.
 
@@ -453,7 +470,7 @@ In general:
 
 ---
 
-# 16. Sharpe ratio
+# 17. Sharpe ratio
 
 The **Sharpe ratio** relates return to volatility.
 
@@ -469,7 +486,7 @@ This is especially important for cryptocurrencies, where return distributions ca
 
 ---
 
-# 17. Percentile relative to random agents
+# 18. Percentile relative to random agents
 
 The simulator compares the technical agent's final capital with the final capital of all random agents.
 
@@ -485,7 +502,7 @@ It only describes the agent's position within **the simulations carried out for 
 
 ---
 
-# 18. Random-agent histogram
+# 19. Random-agent histogram
 
 The histogram shows how the returns of the random agents are distributed.
 
@@ -501,7 +518,7 @@ This is one of the most important charts for comparing the technical strategy wi
 
 ---
 
-# 19. Technical agent vs holders
+# 20. Technical agent vs holders
 
 This chart shows the evolution of cumulative return for:
 
@@ -514,7 +531,7 @@ Two strategies can end with similar results while following very different paths
 
 ---
 
-# 20. Trades and signals
+# 21. Trades and signals
 
 ## Rebalances
 
@@ -538,7 +555,7 @@ This section allows results to be downloaded as CSV files for analysis in Excel,
 
 ---
 
-# 21. Human investors
+# 22. Human investors
 
 The simulator can compare the technical agent with decisions made by people.
 
@@ -571,7 +588,7 @@ When a cryptocurrency is selected, the simulator allocates at most the percentag
 
 ---
 
-# 22. What does CASH mean for human investors?
+# 23. What does CASH mean for human investors?
 
 **CASH** means that the participant does not hold any cryptocurrency at that moment.
 
@@ -581,7 +598,7 @@ A decision does not need to be entered every day. The most recent decision remai
 
 ---
 
-# 23. A simple configuration for learning
+# 24. A simple configuration for learning
 
 To understand the simulator before carrying out the formal experiment, you can start with the following purely educational example:
 
@@ -606,7 +623,7 @@ For the research project, the final parameters should be methodologically justif
 
 ---
 
-# 24. Common interpretation mistakes
+# 25. Common interpretation mistakes
 
 ### “The agent made money, so the strategy works”
 
@@ -628,7 +645,7 @@ For this reason, in an academic experiment it is important to define the rules b
 
 ---
 
-# 25. Key simulator terms
+# 26. Key simulator terms
 
 | Term | Short explanation |
 |---|---|
@@ -651,7 +668,7 @@ For this reason, in an academic experiment it is important to define the rules b
 
 ---
 
-# 26. Why is this simulator not a prediction system?
+# 27. Why is this simulator not a prediction system?
 
 Technical indicators are calculated from past prices.
 
@@ -667,7 +684,7 @@ The main purpose of the project is to **compare decision systems**, not to predi
 
 ---
 
-# 27. Recommendation for academic use
+# 28. Recommendation for academic use
 
 To make the results comparable and reproducible:
 
@@ -695,4 +712,4 @@ If the rules are changed after observing the results, this should be treated as 
 
 ---
 
-**Manual version:** compatible with Academic Crypto Investment Simulator v0.4.2.
+**Manual version:** compatible with Academic Crypto Investment Simulator v0.4.3.
