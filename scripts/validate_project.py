@@ -74,11 +74,20 @@ def main() -> None:
 
     print(f"OK: {len(LOCALES)} idiomes sincronitzats amb {len(reference)} claus cadascun.")
 
-    requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
-    for package in ["streamlit", "pandas", "numpy", "plotly", "ccxt"]:
-        if package not in requirements.lower():
+    requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8").lower()
+    for package in ["streamlit", "pandas", "numpy", "plotly"]:
+        if package not in requirements:
             fail(f"requirements.txt no inclou {package}.")
-    print("OK: dependències principals presents a requirements.txt.")
+    if "ccxt" in requirements:
+        fail("La variant FX no ha de dependre de CCXT.")
+    print("OK: dependències FX principals presents i CCXT absent.")
+
+    engine = (ROOT / "app/engine.py").read_text(encoding="utf-8")
+    if "ecb.europa.eu/stats/eurofxref/eurofxref-hist.csv" not in engine:
+        fail("El motor FX no apunta a la sèrie històrica oficial del BCE.")
+    if "list_fx_markets" not in engine or "available_reference_currencies" not in engine:
+        fail("Falten funcions bàsiques del motor FX.")
+    print("OK: motor configurat per als tipus de canvi de referència del BCE.")
 
     launcher = (ROOT / "INICIAR_AGENT.bat").read_text(encoding="utf-8").lower()
     forbidden = ["powershell", "executionpolicy", "invoke-webrequest", "curl ", "bitsadmin"]
@@ -87,7 +96,7 @@ def main() -> None:
         fail("El launcher conté patrons no admesos per a la distribució segura: " + ", ".join(found))
     print("OK: el launcher no descarrega ni executa PowerShell.")
 
-    print("VALIDACIÓ COMPLETADA CORRECTAMENT")
+    print("VALIDACIÓ FX COMPLETADA CORRECTAMENT")
 
 
 if __name__ == "__main__":
