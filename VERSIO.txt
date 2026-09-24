@@ -1,6 +1,7 @@
 Agent Cripto TDR
-Versió 0.4.1 - distribució Windows autocontinguda
+Versió 0.4.2 - manuals d'usuari incorporats a la distribució
 Interfície multiidioma CA/ES/EN/EU/GL
 Mercats dinàmics + regles editables + holders configurables
 Python portable + Streamlit + dependències incloses a la Release
+Manual introductori en català i anglès inclòs dins del paquet
 Sense setup.ps1, sense ExecutionPolicy Bypass i sense instal·lació de dependències a l'ordinador de l'usuari
