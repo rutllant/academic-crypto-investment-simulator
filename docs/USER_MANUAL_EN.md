@@ -695,4 +695,4 @@ If the rules are changed after observing the results, this should be treated as 
 
 ---
 
-**Manual version:** compatible with Academic Crypto Investment Simulator v0.4.1.
+**Manual version:** compatible with Academic Crypto Investment Simulator v0.4.2.
