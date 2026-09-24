@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     "VERSIO.txt",
     "SECURITY.md",
     "docs/PROTOCOL_TDR.md",
+    "docs/DATA_SOURCE_ECB.md",
     "docs/MANUAL_USUARI.md",
     "docs/USER_MANUAL_EN.md",
     "data/plantilla_inversors_humans.csv",
