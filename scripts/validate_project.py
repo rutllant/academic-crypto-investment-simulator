@@ -21,6 +21,12 @@ REQUIRED_FILES = [
     "data/plantilla_inversors_humans.csv",
 ]
 
+FORBIDDEN_LEGACY_FILES = [
+    "setup.ps1",
+    "INSTAL_LAR_AGENT.bat",
+    "DESINSTAL_LAR_AGENT.bat",
+]
+
 LOCALES = {
     "ca": ROOT / "app/locales/ca.json",
     "es": ROOT / "app/locales/es.json",
@@ -38,6 +44,11 @@ def main() -> None:
     missing = [path for path in REQUIRED_FILES if not (ROOT / path).exists()]
     if missing:
         fail("Falten fitxers obligatoris: " + ", ".join(missing))
+
+    legacy = [path for path in FORBIDDEN_LEGACY_FILES if (ROOT / path).exists()]
+    if legacy:
+        fail("Encara hi ha fitxers del bootstrap antic: " + ", ".join(legacy))
+    print("OK: el bootstrap PowerShell antic no forma part del projecte.")
 
     for path in ["app/app.py", "app/engine.py", "app/i18n.py"]:
         py_compile.compile(str(ROOT / path), doraise=True)
