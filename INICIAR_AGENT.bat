@@ -4,19 +4,29 @@ chcp 65001 >nul
 cd /d "%~dp0"
 title Agent Cripto TDR
 
-if not exist ".install_ok" goto :install
-if not exist ".venv\Scripts\python.exe" goto :install
+set "PYTHON=%~dp0runtime\python.exe"
 
-".venv\Scripts\python.exe" -c "import streamlit, pandas, numpy, plotly, ccxt" >nul 2>nul
-if errorlevel 1 goto :install
+if not exist "%PYTHON%" (
+    echo.
+    echo ERROR: No s'ha trobat el runtime Python inclos amb l'aplicacio.
+    echo.
+    echo Si has descarregat el codi font des de GitHub, utilitza una Release de Windows
+    echo o executa manualment l'aplicacio amb el teu propi entorn Python.
+    echo.
+    pause
+    exit /b 1
+)
+
+"%PYTHON%" -c "import streamlit, pandas, numpy, plotly, ccxt" >nul 2>nul
+if errorlevel 1 (
+    echo.
+    echo ERROR: El paquet de l'aplicacio sembla incomplet o malmes.
+    echo Torna a descarregar la Release oficial des de GitHub.
+    echo.
+    pause
+    exit /b 1
+)
 
 echo Iniciant Agent Cripto TDR...
-start "" /B powershell.exe -NoProfile -Command "Start-Sleep -Seconds 2; Start-Process 'http://localhost:8501'" >nul 2>nul
-".venv\Scripts\python.exe" -m streamlit run "app\app.py" --server.headless true --browser.gatherUsageStats false --server.address localhost --server.port 8501
-exit /b %errorlevel%
-
-:install
-echo L'aplicacio no esta preparada o falta alguna dependencia.
-echo Executant la preparacio automatica...
-call "%~dp0INSTAL_LAR_AGENT.bat"
+"%PYTHON%" -m streamlit run "app\app.py" --server.headless false --browser.gatherUsageStats false --server.address localhost --server.port 8501
 exit /b %errorlevel%
