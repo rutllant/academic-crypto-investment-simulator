@@ -1,42 +1,50 @@
-# Agent Cripto TDR — Windows · v0.4
+# Academic Crypto Investment Simulator · v0.4.1
 
-Aplicació educativa per comparar una estratègia tècnica de criptomonedes amb **holders**, agents aleatoris i inversors humans utilitzant dades reals de mercat. **No executa operacions reals ni necessita claus API.**
+Aplicació educativa per comparar una estratègia tècnica de criptomonedes amb **holders**, agents aleatoris i inversors humans utilitzant dades públiques reals de mercat. **No executa operacions reals, no utilitza claus API i no ofereix assessorament financer.**
 
-## Instal·lació: zero configuració
+## Windows: instal·lació sense Python ni PowerShell
 
-1. Descomprimeix la carpeta `Agent_Cripto_TDR` en un lloc normal de Windows (Documents o Escriptori, per exemple).
-2. Fes doble clic a **`INSTAL_LAR_AGENT.bat`**.
-3. El programa ho fa tot automàticament:
-   - descarrega i instal·la un Python dedicat a l'Agent, sense modificar el Python del sistema;
-   - crea un entorn privat `.venv`;
-   - instal·la **Streamlit**, `pandas`, `numpy`, `plotly` i `ccxt`;
-   - comprova que totes les llibreries es carreguen correctament;
-   - crea l'accés directe **Agent Cripto TDR** a l'escriptori.
-4. Inicia l'aplicació des de l'accés directe o amb `INICIAR_AGENT.bat`.
+La v0.4.1 canvia completament el sistema de distribució. L'ordinador de l'usuari **ja no descarrega ni instal·la Python, no executa `pip` i no utilitza `setup.ps1` ni `ExecutionPolicy Bypass`**.
 
-**No cal instal·lar manualment Python, Streamlit, VS Code ni cap altra llibreria.**
+Cada Release de Windows es construeix automàticament a GitHub Actions i inclou:
+- un runtime oficial de Python portable;
+- Streamlit i totes les dependències necessàries;
+- el codi de l'aplicació;
+- un ZIP portable;
+- un instal·lador `Setup.exe` creat amb Inno Setup;
+- `SHA256SUMS.txt` per comprovar la integritat dels artefactes.
 
-## Novetats v0.4
+### Opció recomanada: Setup.exe
 
-- **Interfície multiidioma completa:** català, castellà, anglès, euskera i gallec.
-- Selector d'idioma a la part superior de la barra lateral.
-- Traducció de menús, ajudes, regles EMA/RSI/MACD, missatges de simulació, resultats, gràfics, taules i apartat d'inversors humans.
-- Arquitectura d'internacionalització separada a `app/locales/`, amb un fitxer JSON per idioma.
-- Afegir un nou idioma ja no requereix modificar la lògica de l'aplicació: n'hi ha prou amb crear un nou fitxer de traduccions.
+Descarrega `Agent_Cripto_TDR_Setup_v0.4.1.exe` des de la Release corresponent i executa'l. L'instal·lador només copia els fitxers autocontinguts i crea els accessos directes seleccionats. No descarrega components durant la instal·lació.
 
-## Funcions de la v0.3 que es mantenen
+### Opció portable: ZIP
 
-- **Catàleg dinàmic de criptomonedes:** carrega les parelles spot disponibles a l'exchange per a EUR, USD, USDT o USDC.
-- **Regles editables:** EMA, RSI i MACD es poden activar/desactivar i modificar.
-- **Holders configurables:** es tria quants holders hi haurà i quina criptomoneda manté cadascun.
-- **Gràfic de rendibilitat:** mostra l'evolució percentual de l'agent tècnic i de tots els holders.
+Descarrega `Agent_Cripto_TDR_Windows_v0.4.1.zip`, descomprimeix-lo i executa `INICIAR_AGENT.bat`. No cal instal·lar Python, Streamlit, VS Code ni cap altra llibreria.
+
+> L'accés a Internet continua sent necessari quan l'aplicació consulta dades públiques de mercat als exchanges.
+
+## Seguretat de la distribució
+
+La v0.4.0 utilitzava un bootstrap de PowerShell que descarregava Python i l'instal·lava silenciosament. Aquest patró podia activar deteccions heurístiques d'antivirus encara que el codi fos legítim. La v0.4.1 elimina completament aquest mecanisme.
+
+Els artefactes de cada Release es construeixen a GitHub Actions. Pots verificar-los amb els hashes SHA-256 publicats a `SHA256SUMS.txt`.
+
+L'instal·lador encara no està signat amb un certificat comercial de code signing; per tant, Windows o algun antivirus poden mostrar avisos de reputació o «editor desconegut». Consulta `SECURITY.md` per als detalls.
+
+## Funcions
+
+- **Catàleg dinàmic de criptomonedes:** parelles spot disponibles a Kraken, Binance, Coinbase i Bitstamp per a EUR, USD, USDT o USDC.
+- **Regles editables:** EMA, RSI i MACD activables i configurables.
+- **Holders configurables:** cada holder manté una criptomoneda durant tot el període.
 - **Monte Carlo:** comparació amb fins a 10.000 agents aleatoris.
 - **Inversors humans:** importació de decisions mitjançant CSV.
+- **Resultats:** capital final, rendibilitat, drawdown, Sharpe, reequilibris, gràfics i exportacions CSV.
+- **Interfície multiidioma:** català, castellà, anglès, euskera i gallec.
 
 ## Idiomes
 
 Els fitxers de traducció són:
-
 - `app/locales/ca.json` — Català
 - `app/locales/es.json` — Español
 - `app/locales/en.json` — English
@@ -45,18 +53,14 @@ Els fitxers de traducció són:
 
 La lògica de càrrega i fallback és a `app/i18n.py`. Si manca una clau en algun idioma, s'utilitza el català com a idioma de reserva.
 
-## Exchanges inclosos a la interfície
-
-Kraken, Binance, Coinbase i Bitstamp. La disponibilitat de mercats i profunditat històrica depenen de cada exchange. Si se seleccionen moltes criptomonedes, la descàrrega pot trigar i el període comú d'anàlisi pot començar més tard si alguna moneda té poca història.
-
-## Criteri metodològic important
+## Criteri metodològic
 
 L'aplicació permet editar les regles per experimentar. Per a la part principal del TDR convé **definir i congelar les regles abans del període de test**. Si es retoquen després de veure els resultats, cal tractar-ho com una nova especificació i provar-la en un altre període fora de mostra.
 
-## Diagnòstic
+## Desenvolupament des del codi font
 
-Si la instal·lació falla, consulta `install.log`. L'instal·lador no marca la instal·lació com a completada fins que comprova que `streamlit`, `pandas`, `numpy`, `plotly` i `ccxt` funcionen.
+El repositori no conté el runtime binari de Python. Els binaris només es generen a les Releases mitjançant GitHub Actions. Per executar directament el codi font cal un entorn Python propi i instal·lar `requirements.txt`.
 
-## Seguretat i abast
+## Abast
 
-Projecte exclusivament educatiu. No guarda claus d'exchange, no opera amb diners reals i no ofereix assessorament financer.
+Projecte exclusivament educatiu. No guarda credencials d'exchange, no opera amb diners reals i el resultat d'un backtest no garanteix rendiments futurs.
