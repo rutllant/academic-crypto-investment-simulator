@@ -2,9 +2,14 @@
 
 Aplicació educativa per comparar una estratègia tècnica de criptomonedes amb **holders**, agents aleatoris i inversors humans utilitzant dades públiques reals de mercat. **No executa operacions reals, no utilitza claus API i no ofereix assessorament financer.**
 
-## Manual d'usuari per començar de zero
+## Manuals per començar de zero
 
-Si no tens experiència en inversions o anàlisi tècnica, consulta **[docs/MANUAL_USUARI.md](docs/MANUAL_USUARI.md)**. Explica pas a pas què són l'exchange, la divisa de referència, la cartera, EMA, RSI, MACD, els holders, els agents aleatoris, el drawdown, l'índex Sharpe, els percentils, els reequilibris i la càrrega de decisions humanes, amb exemples senzills i advertiments d'interpretació.
+Si no tens experiència en inversions o anàlisi tècnica, tens disponibles dos manuals introductoris:
+
+- **[Manual en català](docs/MANUAL_USUARI.md)**
+- **[User manual in English](docs/USER_MANUAL_EN.md)**
+
+Expliquen pas a pas què són l'exchange, la divisa de referència, la cartera, EMA, RSI, MACD, els holders, els agents aleatoris, el drawdown, l'índex Sharpe, els percentils, els reequilibris i la càrrega de decisions humanes, amb exemples senzills i advertiments d'interpretació.
 
 ## Windows: instal·lació sense Python ni PowerShell
 
