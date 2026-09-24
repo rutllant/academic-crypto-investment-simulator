@@ -190,6 +190,12 @@ class BacktestAccountingAuditTests(unittest.TestCase):
         self.assertAlmostEqual(metrics["total_return"], 0.10, places=12)
         self.assertAlmostEqual(metrics["max_drawdown"], -0.25, places=12)
 
+    def test_metrics_include_first_day_loss_from_initial_capital(self) -> None:
+        idx = pd.date_range("2025-01-01", periods=2, freq="D")
+        equity = pd.Series([99.0, 101.0], index=idx)
+        metrics = engine.calculate_metrics(equity, 100.0)
+        self.assertAlmostEqual(metrics["max_drawdown"], -0.01, places=12)
+
 
 class DataIntegrityAuditTests(unittest.TestCase):
     def test_invalid_ohlc_is_rejected(self) -> None:
@@ -201,6 +207,31 @@ class DataIntegrityAuditTests(unittest.TestCase):
     def test_valid_ohlc_passes(self) -> None:
         df = make_ohlc([100, 101, 99], [101, 99, 100])
         engine.validate_market_frame(df, "BTC/EUR")
+
+
+class HumanDecisionAuditTests(unittest.TestCase):
+    def test_human_decision_is_effective_next_session(self) -> None:
+        dates = pd.date_range("2025-01-01", periods=5, freq="D")
+        df = make_ohlc(
+            [100, 100, 200, 200, 200],
+            [100, 100, 200, 200, 200],
+            scores=[0, 0, 0, 0, 0],
+        )
+        df.index = dates
+        decisions = pd.DataFrame(
+            [{"participant": "P1", "date": dates[1], "choice": "BTC"}]
+        )
+        result = engine.evaluate_human_decisions(
+            decisions,
+            {"BTC/EUR": df},
+            initial_capital=10000.0,
+            commission=0.0,
+            max_weight=1.0,
+            evaluation_start=dates[1],
+            evaluation_end=dates[-1],
+        )
+        # Decision on Jan 2 must execute Jan 3 open=200, not Jan 2 close=100.
+        self.assertAlmostEqual(result.iloc[0]["final_value"], 10000.0, places=8)
 
 
 class RandomAgentAuditTests(unittest.TestCase):
