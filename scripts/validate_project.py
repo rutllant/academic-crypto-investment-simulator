@@ -21,6 +21,8 @@ REQUIRED_FILES = [
     "docs/MANUAL_USUARI.md",
     "docs/USER_MANUAL_EN.md",
     "data/plantilla_inversors_humans.csv",
+    "tests/test_engine_audit.py",
+    "VALIDATION.md",
 ]
 
 FORBIDDEN_LEGACY_FILES = [
@@ -86,6 +88,12 @@ def main() -> None:
     if found:
         fail("El launcher conté patrons no admesos per a la distribució segura: " + ", ".join(found))
     print("OK: el launcher no descarrega ni executa PowerShell.")
+
+    engine = (ROOT / "app/engine.py").read_text(encoding="utf-8")
+    for required_symbol in ["validate_market_frame", "_solve_rebalance_scalar", "signal_date"]:
+        if required_symbol not in engine:
+            fail(f"El motor auditat no conté {required_symbol}.")
+    print("OK: controls d’auditoria v0.4.3 presents al motor.")
 
     print("VALIDACIÓ COMPLETADA CORRECTAMENT")
 
