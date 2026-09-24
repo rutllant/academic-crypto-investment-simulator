@@ -17,7 +17,7 @@ if not exist "%PYTHON%" (
     exit /b 1
 )
 
-"%PYTHON%" -c "import streamlit, pandas, numpy, plotly, ccxt" >nul 2>nul
+"%PYTHON%" -c "import streamlit, pandas, numpy, plotly" >nul 2>nul
 if errorlevel 1 (
     echo.
     echo ERROR: El paquet de l'aplicacio sembla incomplet o malmes.
